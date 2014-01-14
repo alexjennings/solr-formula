@@ -1,0 +1,15 @@
+{% set zookeeper_ip = salt['pillar.get']('zookeeper:ip', '192.168.0.11') %}
+{% set solr_hostname = grains['fqdn'] %}
+{% set solr_version = salt['pillar.get']('solr:version', '4.4.0') %}
+
+JAVA_HOME=/usr/lib/jvm/releases/jdk1.7.0_21/
+ 
+JAVA_OPTIONS="-Dbootstrap_confdir=/opt/solr-{{ solr_version }}/cluster1/solr/collection1/conf -Dcollection.configName=VidiConfigTest -DzkHost={{ zookeeper_ip }}:2181 -DnumShards=1 -Dhost={{ solr_hostname }}"
+ 
+JETTY_HOME=/opt/solr-{{ solr_version }}/cluster1
+ 
+JETTY_USER=root
+ 
+JETTY_GROUP=root
+ 
+JETTY_LOGS=/var/log/solr

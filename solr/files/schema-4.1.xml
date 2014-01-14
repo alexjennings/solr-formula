@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<!--  
+ This is the Solr schema file. This file should be named "schema.xml" and
+ should be in the conf directory under the solr home
+ (i.e. ./solr/conf/schema.xml by default) 
+ or located where the classloader for the Solr webapp can find it.
+
+ This example schema is the recommended starting point for users.
+ It should be kept correct and concise, usable out-of-the-box.
+
+ For more information, on how to customize this file, please see
+ http://wiki.apache.org/solr/SchemaXml
+-->
+
+<schema name="example" version="1.1">
+
+  <types>
+    <fieldType name="string" class="solr.StrField" sortMissingLast="true" omitNorms="true"/>
+
+    <fieldType name="boolean" class="solr.BoolField" sortMissingLast="true" omitNorms="true"/>
+
+    <!-- numeric field types that store and index the text
+         value verbatim (and hence don't support range queries, since the
+         lexicographic ordering isn't equal to the numeric ordering) -->
+    <fieldType name="integer" class="solr.IntField" omitNorms="true"/>
+    <fieldType name="long" class="solr.LongField" omitNorms="true"/>
+    <fieldType name="float" class="solr.FloatField" omitNorms="true"/>
+    <fieldType name="double" class="solr.DoubleField" omitNorms="true"/>
+
+
+    <!-- Numeric field types that manipulate the value into
+         a string value that isn't human-readable in its internal form,
+         but with a lexicographic ordering the same as the numeric ordering,
+         so that range queries work correctly. -->
+    <fieldType name="sint" class="solr.SortableIntField" sortMissingLast="true" omitNorms="true"/>
+    <fieldType name="slong" class="solr.SortableLongField" sortMissingLast="true" omitNorms="true"/>
+    <fieldType name="sfloat" class="solr.SortableFloatField" sortMissingLast="true" omitNorms="true"/>
+    <fieldType name="sdouble" class="solr.SortableDoubleField" sortMissingLast="true" omitNorms="true"/>
+
+
+    <!-- The format for this date field is of the form 1995-12-31T23:59:59Z, and
+         is a more restricted form of the canonical representation of dateTime
+         http://www.w3.org/TR/xmlschema-2/#dateTime    
+         The trailing "Z" designates UTC time and is mandatory.
+         Optional fractional seconds are allowed: 1995-12-31T23:59:59.999Z
+         All other components are mandatory.
+
+         Expressions can also be used to denote calculations that should be
+         performed relative to "NOW" to determine the value, ie...
+
+               NOW/HOUR
+                  ... Round to the start of the current hour
+               NOW-1DAY
+                  ... Exactly 1 day prior to now
+               NOW/DAY+6MONTHS+3DAYS
+                  ... 6 months and 3 days in the future from the start of
+                      the current day
+                      
+         Consult the DateField javadocs for more information.
+      -->
+    <fieldType name="date" class="solr.DateField" sortMissingLast="true" omitNorms="true"/>
+
+
+    <!-- The "RandomSortField" is not used to store or search any
+         data.  You can declare fields of this type it in your schema
+         to generate psuedo-random orderings of your docs for sorting 
+         purposes.  The ordering is generated based on the field name 
+         and the version of the index, As long as the index version
+         remains unchanged, and the same field name is reused,
+         the ordering of the docs will be consistent.  
+         If you want differend psuedo-random orderings of documents,
+         for the same version of the index, use a dynamicField and
+         change the name
+     -->
+    <fieldType name="random" class="solr.RandomSortField" indexed="true" />
+
+    <fieldType name="textGeneric" class="solr.TextField" positionIncrementGap="100" sortMissingLast="true" >
+      <analyzer>
+	    <tokenizer class="solr.WhitespaceTokenizerFactory"/>
+        <filter class="solr.LowerCaseFilterFactory"/>
+        <filter class="solr.WordDelimiterFilterFactory" generateWordParts="1" generateNumberParts="1" catenateWords="1" catenateNumbers="1" catenateAll="0" preserveOriginal="1"/>
+        <filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
+      </analyzer>
+    </fieldType>
+
+    <fieldType name="textSuggestion" class="solr.TextField" positionIncrementGap="100">
+	<analyzer>
+	    <tokenizer class="solr.StandardTokenizerFactory"/>
+	    <filter class="solr.LowerCaseFilterFactory"/>
+	    <filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
+	</analyzer>
+    </fieldType>
+ </types>
+
+
+ <fields>
+   <field name="_version_" type="long" indexed="true" stored="true"/>
+   <field name="id" type="string" indexed="true" stored="true" required="true" omitNorms="true"/> 
+   
+   <!-- catchall field, containing all other searchable text fields (implemented
+        via copyField further on in this schema  -->
+   <field name="text" type="textGeneric" indexed="true" stored="false" multiValued="true"/>
+
+   <!-- Here, default is used to create a "timestamp" field indicating
+        When each document was indexed.
+     -->
+   <field name="timestamp" type="date" indexed="true" stored="true" default="NOW" multiValued="false" omitNorms="true"/>
+
+   <!-- Users and groups that have generic read access to the item/collection -->
+   <field name="accessedUser" type="string" indexed="true" stored="false" multiValued="true" required="false" omitNorms="true"/>
+   <field name="accessedGroup" type="string" indexed="true" stored="false" multiValued="true" required="false" omitNorms="true"/>
+
+   <field name="type" type="string" indexed="true" stored="true" omitNorms="true"/>
+
+   <field name="created" type="date" indexed="true" stored="true" required="true" multiValued="false" omitNorms="true"/>
+   <field name="entityId" type="string" indexed="true" stored="true" required="true" multiValued="false" omitNorms="true"/>
+   <field name="intervals" type="string" indexed="true" stored="true" required="false" multiValued="false" omitNorms="true"/>
+   <field name="uuid" type="string" indexed="true" stored="true" required="false" multiValued="false" omitNorms="true"/>
+
+   <!-- A combination of type and entityId. Used with field collapsing.  -->
+   <field name="entity" type="string" indexed="true" stored="true" required="true" multiValued="false" omitNorms="true"/>
+
+   <!-- Used for spellchecks and autocompletion. Values are copied to this field. -->
+   <field name="suggestion" type="textSuggestion" indexed="true" stored="false" multiValued="true"/>
+
+   <field name="start" type="string" indexed="true" stored="true" required="true" multiValued="false" omitNorms="true"/>
+   <field name="end" type="string" indexed="true" stored="true" required="true" multiValued="false" omitNorms="true"/>
+
+   <!-- The order of an item in a collection. -->
+   <dynamicField name="__order_*" type="sint" indexed="true" stored="false" multiValued="false" omitNorms="true"/>
+
+   <!-- Basic data types. Fields directly map to these. -->
+   <dynamicField name="*_i"  type="sint"    indexed="true"  stored="true" multiValued="true" omitNorms="true"/>
+   <dynamicField name="*_s"  type="string"  indexed="true"  stored="true" multiValued="true" omitNorms="true"/>
+   <dynamicField name="*_d"  type="sdouble" indexed="true"  stored="true" multiValued="true" omitNorms="true"/>
+   <dynamicField name="*_dt" type="date"    indexed="true"  stored="true" multiValued="true" omitNorms="true"/>
+   <dynamicField name="*_lowers" type="textGeneric" indexed="true"  stored="true" multiValued="true" omitNorms="true"/>
+   <dynamicField name="*_b"  type="boolean"  indexed="true"  stored="true" multiValued="false" omitNorms="true"/>
+   <dynamicField name="*_tc"  type="string"  indexed="true"  stored="true" multiValued="true" omitNorms="true"/>	 
+
+   <!-- These are used for sorting, for every field we will store the minimum and maximum for its values.
+	Using a slightly different naming scheme to avoid these values to be copied to other fields. -->
+   <dynamicField name="*_tc_max"  type="sdouble"  indexed="true"  stored="false" multiValued="false" omitNorms="true"/>
+   <dynamicField name="*_tc_min"  type="sdouble"  indexed="true"  stored="false" multiValued="false" omitNorms="true"/>
+   <dynamicField name="*_b_max"  type="boolean"  indexed="true"  stored="false" multiValued="false" omitNorms="true"/>
+   <dynamicField name="*_b_min"  type="boolean"  indexed="true"  stored="false" multiValued="false" omitNorms="true"/>
+   <dynamicField name="*_i_max" type="sint" indexed="true" stored="false" multiValued="false" omitNorms="true"/>
+   <dynamicField name="*_i_min" type="sint" indexed="true" stored="false" multiValued="false" omitNorms="true"/>
+   <dynamicField name="*_s_max" type="string" indexed="true" stored="false" multiValued="false" omitNorms="true"/>
+   <dynamicField name="*_s_min" type="string" indexed="true" stored="false" multiValued="false" omitNorms="true"/>
+   <dynamicField name="*_d_max" type="sdouble" indexed="true" stored="false" multiValued="false" omitNorms="true"/>
+   <dynamicField name="*_d_min" type="sdouble" indexed="true" stored="false" multiValued="false" omitNorms="true"/>
+   <dynamicField name="*_dt_max" type="date" indexed="true" stored="false" multiValued="false" omitNorms="true"/>
+   <dynamicField name="*_dt_min" type="date" indexed="true" stored="false" multiValued="false" omitNorms="true"/>
+   <dynamicField name="*_lowers_max" type="string" indexed="true" stored="false" multiValued="false" omitNorms="true"/>
+   <dynamicField name="*_lowers_min" type="string" indexed="true" stored="false" multiValued="false" omitNorms="true"/>
+
+ </fields>
+
+ <!-- Field to use to determine and enforce document uniqueness. 
+      Unless this field is marked with required="false", it will be a required field
+   -->
+ <uniqueKey>id</uniqueKey>
+
+ <!-- field for the QueryParser to use when an explicit fieldname is absent -->
+ <defaultSearchField>text</defaultSearchField>
+
+ <!-- SolrQueryParser configuration: defaultOperator="AND|OR" -->
+ <solrQueryParser defaultOperator="OR"/>
+
+   <!-- Copy fields to the text element -->
+   <copyField source="*_d" dest="text"/> 
+   <copyField source="*_i" dest="text"/>
+   <copyField source="*_s" dest="text"/>
+   <copyField source="*_dt" dest="text"/>
+   <copyField source="*_lowers" dest="text"/>
+
+   <!-- Copy fields to the suggestion element -->
+   <copyField source="*_d" dest="suggestion"/> 
+   <copyField source="*_i" dest="suggestion"/>
+   <copyField source="*_s" dest="suggestion"/>
+   <copyField source="*_dt" dest="suggestion"/>
+   <copyField source="*_lowers" dest="suggestion"/>
+</schema>

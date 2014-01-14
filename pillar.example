@@ -1,0 +1,10 @@
+zookeeper:
+  ip: '192.168.0.11'
+
+solr:
+  version: '4.4.0'
+  schema: '4.1'
+  config: '4.1'
+
+jdk:
+  version: '1.7.0_21'
